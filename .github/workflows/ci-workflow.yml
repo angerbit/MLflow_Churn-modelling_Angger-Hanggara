@@ -59,17 +59,13 @@ jobs:
           MODEL_VERSION=$(python modelling.py --get-model-version churn_model)
           echo "Latest model version: $MODEL_VERSION"
 
-          mkdir -p /tmp/mlflow-docker
-          mlflow models generate-dockerfile \
+          mlflow models build-docker \
             --model-uri "models:/churn_model/$MODEL_VERSION" \
-            --python-version 3.12.7 \
-            -d /tmp/mlflow-docker
+            --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}" \
+            --base-image python:3.12.7-slim
 
-            docker build \
-            -t "DOCKER_USERNAME/churn-model:${{github.run_number}}" \
-            -t "DOCKER_USERNAME/churn-model:latest" \ 
-            /tmp/mlflow-docker
-
+          docker tag "$DOCKER_USERNAME/churn-model:${{ github.run_number }}" \
+                     "$DOCKER_USERNAME/churn-model:latest"
           docker push "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
           docker push "$DOCKER_USERNAME/churn-model:latest"
 
