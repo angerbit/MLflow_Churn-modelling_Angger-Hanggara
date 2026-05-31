@@ -59,8 +59,8 @@ jobs:
           MODEL_VERSION=$(python modelling.py --get-model-version churn_model)
           echo "Latest model version: $MODEL_VERSION"
 
-          mkdir -p/tmp/mlflow-docker
-          mlflow models generate-docker \
+          mkdir -p /tmp/mlflow-docker
+          mlflow models generate-dockerfile \
             --model-uri "models:/churn_model/$MODEL_VERSION" \
             --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
             --python-version 3.12.7\
