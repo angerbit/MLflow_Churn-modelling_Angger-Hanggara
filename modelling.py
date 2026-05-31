@@ -94,6 +94,25 @@ def parse_args():
     return parser.parse_args()
 
 
+def get_latest_model_version(model_name: str) -> str:
+    """Query MLflow Model Registry dan print versi terbaru ke stdout.
+
+    Dipanggil dari CI dengan:
+        MODEL_VERSION=$(python modelling.py --get-model-version churn_model)
+    """
+
+    tracking_uri = get_tracking_uri()
+    mlflow.set_tracking_uri(tracking_uri)
+    client = mlflow.MlflowClient()
+    versions = client.search_model_versions(f"name='{model_name}'")
+    if not versions:
+        logger.error("Model '%s' tidak ditemukan di registry %s", model_name, tracking_uri)
+        sys.exit(1)
+    latest = max(versions, key=lambda v: int(v.version))
+    print(latest.version)
+    return latest.version
+
+
 def load_dataset(dataset_path: Path, target_col: str):
     if dataset_path.is_dir():
         x_path = dataset_path / 'X_preprocessed.csv'
@@ -355,4 +374,8 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main()
+    _args = parse_args()
+    if _args.get_model_version:
+        get_latest_model_version(_args.get_model_version)
+    else:
+        main(args=_args)
