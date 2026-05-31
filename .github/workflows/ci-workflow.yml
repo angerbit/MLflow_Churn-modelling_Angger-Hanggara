@@ -61,8 +61,7 @@ jobs:
 
           mlflow models build-docker \
             --model-uri "models:/churn_model/$MODEL_VERSION" \
-            --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}" \
-            --base-image python:3.12.7-slim
+            --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
 
           docker tag "$DOCKER_USERNAME/churn-model:${{ github.run_number }}" \
                      "$DOCKER_USERNAME/churn-model:latest"
