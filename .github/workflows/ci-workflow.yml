@@ -54,23 +54,15 @@ jobs:
         run: |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-          # Ambil versi model terbaru dari registry DagsHub
-          MODEL_VERSION=$(python - <<'EOF'
-            import mlflow, os
-            mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
-            client = mlflow.MlflowClient()
-            # API baru — tidak pakai stages yang deprecated
-            versions = client.search_model_versions("name='churn_model'")
-            latest = max(versions, key=lambda v: int(v.version))
-            print(latest.version)
-            EOF
-          )
+          MODEL_VERSION=$(python modelling.py --get-model-version churn_model)
           echo "Latest model version: $MODEL_VERSION"
 
           mlflow models build-docker \
             --model-uri "models:/churn_model/$MODEL_VERSION" \
             --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
 
+          docker tag "$DOCKER_USERNAME/churn-model:${{ github.run_number }}" \
+                     "$DOCKER_USERNAME/churn-model:latest"
           docker push "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
           docker push "$DOCKER_USERNAME/churn-model:latest"
 
