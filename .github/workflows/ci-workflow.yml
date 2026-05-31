@@ -62,7 +62,6 @@ jobs:
           mkdir -p /tmp/mlflow-docker
           mlflow models generate-dockerfile \
             --model-uri "models:/churn_model/$MODEL_VERSION" \
-            --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
             --python-version 3.12.7\
             -d /tmp/mlflow-docker
 
