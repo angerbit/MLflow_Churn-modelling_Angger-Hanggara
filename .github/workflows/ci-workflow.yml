@@ -61,13 +61,13 @@ jobs:
 
           mlflow models build-docker \
             --model-uri "models:/churn_model/$MODEL_VERSION" \
-            --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
+            --name "$DOCKER_USERNAME/churn-model:${{ github.run_number }}" \
+            --env-manager local
 
           docker tag "$DOCKER_USERNAME/churn-model:${{ github.run_number }}" \
                      "$DOCKER_USERNAME/churn-model:latest"
           docker push "$DOCKER_USERNAME/churn-model:${{ github.run_number }}"
           docker push "$DOCKER_USERNAME/churn-model:latest"
-
 
 
 
