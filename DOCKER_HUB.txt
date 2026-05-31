@@ -1,0 +1,4 @@
+# Docker Hub repository reference
+# Replace this with your Docker Hub image name.
+# Example:
+# your-dockerhub-username/churn-model:latest
