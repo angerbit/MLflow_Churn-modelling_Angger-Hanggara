@@ -91,6 +91,14 @@ def parse_args():
     parser.add_argument('--tracking-uri', type=str, default=None)
     parser.add_argument('--x-data-path', type=str, default=None)
     parser.add_argument('--y-data-path', type=str, default=None)
+    parser.add_argument(
+        '--get-model-version',
+        dest='get_model_version',  
+        metavar='MODEL_NAME',
+        type=str,
+        default=None,
+        help='Print versi terbaru model dari MLflow registry lalu exit.',
+    )
     return parser.parse_args()
 
 
@@ -378,4 +386,4 @@ if __name__ == '__main__':
     if _args.get_model_version:
         get_latest_model_version(_args.get_model_version)
     else:
-        main(args=_args)
+        main(_args)
