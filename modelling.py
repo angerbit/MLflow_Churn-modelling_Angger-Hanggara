@@ -288,9 +288,9 @@ def main(args=None):
         stratify=y if len(y.shape) == 1 or y.shape[1] == 1 else None,
     )
 
-    with mlflow.start_run(run_name=f'LinearSVC_{datetime.now():%Y%m%d_%H%M%S}'):
+    with mlflow.start_run(run_name=f'SVC_{datetime.now():%Y%m%d_%H%M%S}'):
         params = {
-            'model_type': 'LinearSVC',
+            'model_type': 'SVC',
             'max_iter': max_iter,
             'random_state': random_state,
             'test_size': test_size,
@@ -305,6 +305,10 @@ def main(args=None):
             gamma='auto',
         )
         model.fit(X_train, y_train.values.ravel())
+
+        mlflow.sklearn.log_model(model, 
+                                  artifact_path='svc_model',
+                                  registered_model_name='churn_model')
 
         y_pred = model.predict(X_test)
         y_scores = model.decision_function(X_test)
