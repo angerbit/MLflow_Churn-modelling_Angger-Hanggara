@@ -1,25 +1,36 @@
-name: churn_model_project
-conda_env: conda.yaml
-entry_points:
-  main:
-    parameters:
-      dataset_path: {type: str, default: "namadataset_preprocessing"}
-      target_column: {type: str, default: "Exited"}
-      test_size: {type: float, default: 0.2}
-      random_state: {type: int, default: 42}
-      max_iter: {type: int, default: 1000}
-      mlflow_experiment_name: {type: str, default: "churn_modeling"}
-      tracking_uri: {type: str, default: "http://127.0.0.1:5000"}
-      x_data_path: {type: str, default: ""}
-      y_data_path: {type: str, default: ""}
-    command: >
-      python modelling.py
-        --dataset-path {dataset_path}
-        --target-column {target_column}
-        --test-size {test_size}
-        --random-state {random_state}
-        --max-iter {max_iter}
-        --experiment-name {mlflow_experiment_name}
-        --tracking-uri {tracking_uri}
-        --x-data-path {x_data_path}
-        --y-data-path {y_data_path}
+artifact_path: model
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.7
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+mlflow_version: 2.19.0
+model_size_bytes: 304142
+model_uuid: a3f8ba5480c045e6afb6c9a18fb0360f
+run_id: b5478e2f81ab4c77967ee1b05c92494a
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "CreditScore", "required": true}, {"type":
+    "double", "name": "Age", "required": true}, {"type": "double", "name": "Tenure",
+    "required": true}, {"type": "double", "name": "Balance", "required": true}, {"type":
+    "long", "name": "NumOfProducts", "required": true}, {"type": "long", "name": "HasCrCard",
+    "required": true}, {"type": "long", "name": "IsActiveMember", "required": true},
+    {"type": "double", "name": "EstimatedSalary", "required": true}, {"type": "boolean",
+    "name": "Geography_Germany", "required": true}, {"type": "boolean", "name": "Geography_Spain",
+    "required": true}, {"type": "boolean", "name": "Gender_Male", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int64", "shape": [-1]}}]'
+  params: null
+utc_time_created: '2026-06-04 06:24:00.460349'
