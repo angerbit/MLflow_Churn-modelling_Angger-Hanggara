@@ -396,5 +396,4 @@ if __name__ == '__main__':
     if _args.get_model_version:
         get_latest_model_version(_args.get_model_version)
     else:
->>>>>>> 8275881 (Add revised files)
         main(_args)
