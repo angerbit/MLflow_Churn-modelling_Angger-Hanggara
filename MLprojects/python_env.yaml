@@ -1,7 +1,17 @@
-python: 3.12.7
+python: "3.12.7"
 build_dependencies:
-- pip==24.2
-- setuptools==82.0.1
-- wheel==0.47.0
+  - pip==24.2
+  - setuptools==82.0.1
+  - wheel==0.47.0
 dependencies:
-- -r requirements.txt
+  - pandas==2.3.3
+  - numpy==2.4.6
+  - matplotlib==3.10.1
+  - scikit-learn==1.8.0
+  - joblib==1.4.2
+  - mlflow==2.19.0
+  - dagshub==0.3.65
+  - cloudpickle==3.1.2
+  - scipy==1.17.1
+  - psutil==7.2.2
+  - pyarrow==18.1.0
