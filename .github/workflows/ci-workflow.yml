@@ -11,6 +11,10 @@ on:
 
 env:
   MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+  DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+  DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+  DAGSHUB_REPO: ${{ secrets.DAGSHUB_REPO }}
+  DAGSHUB_OWNER: ${{ secrets.DAGSHUB_OWNER }}
 
 jobs:
   build-and-push:
@@ -26,16 +30,22 @@ jobs:
           python-version: '3.12.7'
           cache: 'pip'
 
-      - name: Install MLflow CLI and dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install mlflow
-          if [ -f MLProject/requirements.txt ]; then
-            pip install -r MLProject/requirements.txt
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
           fi
 
+      - name: List directory structure (debug)
+        run: |
+          pwd
+          ls -la
+          echo "---"
+          find . -name "*.py" -o -name "MLproject" -o -name "*.csv" | head -20
+
       - name: Build Docker image from MLProject
-        working-directory: MLProject
         run: |
           mlflow build-docker -m . -n ${{ secrets.DOCKER_IMAGE_NAME }}
 
@@ -50,7 +60,6 @@ jobs:
           docker push ${{ secrets.DOCKER_IMAGE_NAME }}
 
       - name: Train model using MLflow run
-        working-directory: MLProject
         run: |
           mlflow run . --env-manager=local \
             --experiment-name churn_modeling \
@@ -64,12 +73,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: training-artifacts
-          path: MLProject/models/
+          path: models/
           retention-days: 30
 
       - name: Upload MLflow artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
-          path: MLProject/mlruns/
+          path: mlruns/
           retention-days: 30
