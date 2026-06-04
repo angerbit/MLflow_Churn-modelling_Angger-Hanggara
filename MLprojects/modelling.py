@@ -308,7 +308,7 @@ def main(args=None):
         model.fit(X_train, y_train.values.ravel())
 
         mlflow.sklearn.log_model(model, 
-                                  artifact_path='svc_model',
+                                  artifact_path='churn_model',
                                   registered_model_name='churn_model')
 
         y_pred = model.predict(X_test)
