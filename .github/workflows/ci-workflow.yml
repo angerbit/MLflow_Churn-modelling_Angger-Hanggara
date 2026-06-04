@@ -42,7 +42,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install mlflow scikit-learn pandas numpy matplotlib dagshub joblib
 
-      # ── 4. Train model via mlflow run ──────────────────────────────────────
+          # ── 4. Train model via mlflow run ──────────────────────────────────────
       - name: Train model via MLflow
         run: |
           mlflow run ./MLprojects \
@@ -56,8 +56,7 @@ jobs:
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}-state=42 \
-                  -P max-iter=1000
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
 
       # ── 5. Simpan artefak ke repo GitHub yang sama ────────────────────────
       - name: Commit and push artifacts to repository
