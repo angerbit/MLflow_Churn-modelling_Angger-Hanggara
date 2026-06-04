@@ -61,14 +61,14 @@ jobs:
             -P max-iter=1000
 
       - name: Upload training artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: training-artifacts
           path: MLProject/models/
           retention-days: 30
 
       - name: Upload MLflow artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
           path: MLProject/mlruns/
