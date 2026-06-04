@@ -42,7 +42,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install mlflow scikit-learn pandas numpy matplotlib dagshub joblib
 
-          # ── 4. Train model via mlflow run ──────────────────────────────────────
+      # 4. Training the model
       - name: Train model via MLflow
         run: |
           mlflow run ./MLprojects \
