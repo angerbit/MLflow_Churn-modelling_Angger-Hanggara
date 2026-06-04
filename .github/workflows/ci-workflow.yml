@@ -2,12 +2,10 @@ name: CI - Churn Modeling Build and Deploy Docker
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 env:
   MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
@@ -17,83 +15,81 @@ env:
   DAGSHUB_OWNER: ${{ secrets.DAGSHUB_OWNER }}
 
 jobs:
-  build-and-push:
+  train-and-deploy:
     runs-on: ubuntu-latest
+    # Izin write ke repo untuk menyimpan artefak
+    permissions:
+      contents: write
 
     steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
+      # ── 2. Setup Python ────────────────────────────────────────────────────
       - name: Set up Python 3.12.7
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12.7'
-          cache: 'pip'
+          python-version: "3.12.7"
+          cache: "pip"
 
-      - name: Install MLflow CLI and dependencies
+      # ── 3. Install dependencies ────────────────────────────────────────────
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install mlflow scikit-learn pandas numpy matplotlib dagshub joblib
 
-      - name: Build Docker image
+      # ── 4. Train model via mlflow run ──────────────────────────────────────
+      - name: Train model via MLflow
         run: |
-          # Buat Dockerfile
-          cat > Dockerfile << 'EOF'
-          FROM python:3.12.7-slim
-          WORKDIR /app
-          COPY requirements.txt .
-          RUN pip install --no-cache-dir -r requirements.txt
-          COPY . .
-          CMD ["python", "modelling.py"]
-          EOF
-          
-          # Buat requirements.txt jika belum ada
-          if [ ! -f requirements.txt ]; then
-            echo "mlflow>=2.0.0" > requirements.txt
-            echo "scikit-learn>=1.3.0" >> requirements.txt
-            echo "pandas>=2.0.0" >> requirements.txt
-            echo "numpy>=1.24.0" >> requirements.txt
-            echo "matplotlib>=3.7.0" >> requirements.txt
-            echo "dagshub>=0.3.0" >> requirements.txt
-            echo "joblib>=1.3.0" >> requirements.txt
-          fi
-          
-          docker build -t ${{ secrets.DOCKER_IMAGE_NAME }} .
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Push Docker image to Docker Hub
-        run: |
-          docker push ${{ secrets.DOCKER_IMAGE_NAME }}
-
-      - name: Train model using MLflow run
-        run: |
-          mlflow run . --env-manager=local \
+          mlflow run ./MLprojects --env-manager=local \
             --experiment-name churn_modeling \
             -P x-data-path=X_preprocessed.csv \
             -P y-data-path=y_preprocessed.csv \
             -P test-size=0.2 \
             -P random-state=42 \
             -P max-iter=1000
+
+      # ── 5. Simpan artefak ke repo GitHub yang sama ────────────────────────
+      - name: Commit and push artifacts to repository
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Tambahkan folder artefak hasil training
+          git add MLprojects/models/   || true
+          git add MLprojects/mlruns/   || true
+
+          # Cek apakah ada perubahan sebelum commit
+          if git diff --staged --quiet; then
+            echo "Tidak ada artefak baru, skip commit."
+          else
+            git commit -m "ci: update training artifacts [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      # ── 6. Build Docker image via mlflow build-docker ─────────────────────
+      - name: Build Docker image with MLflow
+        run: |
+          mlflow models build-docker \
+            --model-uri "models:/churn_model/latest" \
+            --name ${{ secrets.DOCKER_IMAGE_NAME }} \
+            --enable-mlserver
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
 
-      - name: Upload training artifacts
-        uses: actions/upload-artifact@v4
+      # ── 7. Login ke Docker Hub ─────────────────────────────────────────────
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
         with:
-          name: training-artifacts
-          path: models/
-          retention-days: 30
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Upload MLflow artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: mlflow-artifacts
-          path: mlruns/
-          retention-days: 30
+      # ── 8. Push image ke Docker Hub ────────────────────────────────────────
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}
