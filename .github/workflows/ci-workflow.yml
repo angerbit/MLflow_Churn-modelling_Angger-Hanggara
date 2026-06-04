@@ -30,45 +30,34 @@ jobs:
           python-version: '3.12.7'
           cache: 'pip'
 
-      - name: Install dependencies
+      - name: Install MLflow CLI and dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mlflow scikit-learn pandas numpy matplotlib dagshub
-          if [ -f MLProject/requirements.txt ]; then
-            pip install -r MLProject/requirements.txt
-          fi
+          pip install mlflow scikit-learn pandas numpy matplotlib dagshub joblib
 
-      - name: List directory structure (debug)
+      - name: Build Docker image
         run: |
-          pwd
-          ls -la
-          ls -la MLProject/ || echo "No MLProject folder, checking current directory..."
-          ls -la *.py *.csv MLproject 2>/dev/null || echo "Checking files in root..."
-
-      - name: Build Docker image using Python
-        run: |
-          python -c "
-          import mlflow
-          print(f'MLflow version: {mlflow.__version__}')
-          "
-          
-      - name: Build Docker image manually
-        run: |
-          # Buat Dockerfile jika belum ada
+          # Buat Dockerfile
           cat > Dockerfile << 'EOF'
           FROM python:3.12.7-slim
-          
           WORKDIR /app
-          
           COPY requirements.txt .
           RUN pip install --no-cache-dir -r requirements.txt
-          
           COPY . .
-          
           CMD ["python", "modelling.py"]
           EOF
           
-          # Build image
+          # Buat requirements.txt jika belum ada
+          if [ ! -f requirements.txt ]; then
+            echo "mlflow>=2.0.0" > requirements.txt
+            echo "scikit-learn>=1.3.0" >> requirements.txt
+            echo "pandas>=2.0.0" >> requirements.txt
+            echo "numpy>=1.24.0" >> requirements.txt
+            echo "matplotlib>=3.7.0" >> requirements.txt
+            echo "dagshub>=0.3.0" >> requirements.txt
+            echo "joblib>=1.3.0" >> requirements.txt
+          fi
+          
           docker build -t ${{ secrets.DOCKER_IMAGE_NAME }} .
 
       - name: Log in to Docker Hub
@@ -96,14 +85,14 @@ jobs:
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
 
       - name: Upload training artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: training-artifacts
           path: models/
           retention-days: 30
 
       - name: Upload MLflow artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: mlflow-artifacts
           path: mlruns/
