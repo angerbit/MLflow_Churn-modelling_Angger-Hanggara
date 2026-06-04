@@ -33,21 +33,43 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mlflow
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
+          pip install mlflow scikit-learn pandas numpy matplotlib dagshub
+          if [ -f MLProject/requirements.txt ]; then
+            pip install -r MLProject/requirements.txt
           fi
 
       - name: List directory structure (debug)
         run: |
           pwd
           ls -la
-          echo "---"
-          find . -name "*.py" -o -name "MLproject" -o -name "*.csv" | head -20
+          ls -la MLProject/ || echo "No MLProject folder, checking current directory..."
+          ls -la *.py *.csv MLproject 2>/dev/null || echo "Checking files in root..."
 
-      - name: Build Docker image from MLProject
+      - name: Build Docker image using Python
         run: |
-          mlflow build-docker -m . -n ${{ secrets.DOCKER_IMAGE_NAME }}
+          python -c "
+          import mlflow
+          print(f'MLflow version: {mlflow.__version__}')
+          "
+          
+      - name: Build Docker image manually
+        run: |
+          # Buat Dockerfile jika belum ada
+          cat > Dockerfile << 'EOF'
+          FROM python:3.12.7-slim
+          
+          WORKDIR /app
+          
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir -r requirements.txt
+          
+          COPY . .
+          
+          CMD ["python", "modelling.py"]
+          EOF
+          
+          # Build image
+          docker build -t ${{ secrets.DOCKER_IMAGE_NAME }} .
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -68,16 +90,20 @@ jobs:
             -P test-size=0.2 \
             -P random-state=42 \
             -P max-iter=1000
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
 
       - name: Upload training artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: training-artifacts
           path: models/
           retention-days: 30
 
       - name: Upload MLflow artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: mlflow-artifacts
           path: mlruns/
