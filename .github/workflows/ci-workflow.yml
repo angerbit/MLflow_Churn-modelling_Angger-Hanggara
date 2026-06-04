@@ -81,8 +81,7 @@ jobs:
         run: |
           mlflow models build-docker \
             --model-uri "models:/churn_model/latest" \
-            --name ${{ secrets.DOCKER_IMAGE_NAME }} \
-            --enable-mlserver
+            --name ${{ secrets.DOCKER_IMAGE_NAME }}
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
