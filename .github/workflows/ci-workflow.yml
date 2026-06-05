@@ -47,7 +47,7 @@ jobs:
         run: |
           mlflow run ./MLprojects \
             --env-manager=local \
-            --experiment-name churn_modeling \
+            --experiment-name churn_model \
             -P x-data-path=X_preprocessed.csv \
             -P y-data-path=y_preprocessed.csv \
             -P test-size=0.2 \
