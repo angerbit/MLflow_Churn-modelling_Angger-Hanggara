@@ -63,16 +63,18 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
+      
           # Tambahkan folder artefak hasil training
           git add MLprojects/models/   || true
           git add MLprojects/mlruns/   || true
-
+      
           # Cek apakah ada perubahan sebelum commit
           if git diff --staged --quiet; then
             echo "Tidak ada artefak baru, skip commit."
           else
             git commit -m "ci: update training artifacts [skip ci]"
+            # Pull latest changes before pushing
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
 
