@@ -1,4 +1,4 @@
-name: churn_modeling
+name: churn_model
 
 conda_env: conda.yaml
 
@@ -35,4 +35,4 @@ entry_points:
       experiment-name:
         description: "MLflow experiment name"
         type: string
-        default: "churn_modeling"
+        default: "churn_model"
