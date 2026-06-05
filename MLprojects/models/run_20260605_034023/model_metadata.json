@@ -1,0 +1,19 @@
+{
+    "dataset_path": "X=X_preprocessed.csv, Y=y_preprocessed.csv",
+    "target_column": "Exited",
+    "model_type": "SVC",
+    "trained_at": "20260605_034023",
+    "features": 11,
+    "samples": 10000,
+    "accuracy": 0.866,
+    "precision": 0.8034934497816594,
+    "recall": 0.4520884520884521,
+    "f1_score": 0.5786163522012578,
+    "true_negative": 1548,
+    "false_positive": 45,
+    "false_negative": 223,
+    "true_positive": 184,
+    "training_set_size": 8000,
+    "testing_set_size": 2000,
+    "roc_auc": 0.830064270742237
+}
